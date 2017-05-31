@@ -1,0 +1,68 @@
+<html>
+<head>
+    <title>Minimal PWA test</title>
+</head>
+<body>
+    For some reason the API service worker never intercepts any request, despite being registered for the ./api scope.
+    <hr/>
+    <div style="border: 1px solid;">
+        <button id="apiButton">Make API request</button>
+        <span id="apiResult"></span>
+    </div>
+    <div style="border: 1px solid;">
+        <button id="otherButton">Make other request</button>
+        <span id="otherResult"></span>
+    </div>
+    <script>
+        //registers API service worker; called after registerOtherServiceWorker
+        function registerAPIServiceWorker(){
+            console.log('Registering API service worker...');
+            navigator.serviceWorker.register('api/sw.js', {scope: "./api/"}).then((registration) => {
+                console.log('API service worker registered successfully with scope',registration.scope);
+            }).catch((err) => {
+                console.error('API service worker registration failed: ', err);
+            });
+        }
+
+        //registers itself, then calls registerAPIServiceWorker
+        function registerOtherServiceWorker(){
+            console.log('Registering other service worker...');
+            navigator.serviceWorker.register('sw.js', {scope: "./"}).then((registration) => {
+                console.log('other service worker registered successfully with scope',registration.scope);
+                registerAPIServiceWorker();
+            }).catch((err) => {
+                console.error('other service worker registration failed: ', err);
+            });
+        }
+
+        //helper function to reduce code duplicates
+        function logResponse(response,where){
+            response.text().then((text)=>{
+                console.log(where,":", text);
+                document.getElementById(where).innerText = text;
+            });
+        }
+
+        (function() {
+            if ('serviceWorker' in navigator) {
+                registerOtherServiceWorker();
+//                registerAPIServiceWorker(); //will be done when registerOtherServiceWorker() finishes
+            } else {
+                console.log("Your browser doesn't support service workers :-(")
+            }
+
+            document.getElementById("apiButton").onclick = function(){
+                fetch("api/something").then(function(response){
+                    logResponse(response,"apiResult");
+                });
+            };
+
+            document.getElementById("otherButton").onclick = function(){
+                fetch("other/something").then(function(response){
+                    logResponse(response,"otherResult");
+                });
+            };
+        })();
+    </script>
+</body>
+</html>
