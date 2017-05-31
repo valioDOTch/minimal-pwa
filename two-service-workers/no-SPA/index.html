@@ -1,0 +1,10 @@
+<script>
+    Promise.all([
+        navigator.serviceWorker.register('sw.js', { scope: './'}),
+        navigator.serviceWorker.register('images/sw-images.js', { scope: './images/' })
+    ])
+        .then(() => console.log('All right!'))
+    .catch(error => console.error(error));
+</script>
+<a href="content.html">./content.html</a>
+<a href="images/content.html">./images/content.html</a>
